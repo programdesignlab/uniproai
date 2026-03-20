@@ -1,6 +1,16 @@
 import { useState, useEffect } from "react"
+import { apiFetch } from "./api-client"
+import type {
+  RegimeResponse,
+  SectorRanking,
+  WatchlistEntry,
+  Stock,
+  StockDetail,
+  RegimeSignalsResponse,
+  FiiDiiFlow,
+} from "./types"
 
-function useApi<T>(url: string) {
+function useApi<T>(path: string) {
   const [data, setData] = useState<T | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -8,11 +18,7 @@ function useApi<T>(url: string) {
   useEffect(() => {
     let cancelled = false
     setLoading(true)
-    fetch(url)
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        return res.json()
-      })
+    apiFetch<T>(path)
       .then((json) => {
         if (!cancelled) {
           setData(json)
@@ -28,128 +34,50 @@ function useApi<T>(url: string) {
     return () => {
       cancelled = true
     }
-  }, [url])
+  }, [path])
 
   return { data, loading, error }
 }
 
-export function useOverview() {
-  return useApi<{
-    regime: string
-    exposure: string
-    date: string
-    stocksScanned: number
-    trendTemplatePasses: number
-    watchlistCount: number
-  }>("/api/overview")
+export function useRegime() {
+  return useApi<RegimeResponse>("/api/v1/regime")
 }
 
 export function useSectors() {
-  return useApi<
-    {
-      rank: number
-      sectorName: string
-      avgRsScore: number
-      stocksNearHigh: number
-      totalStocks: number
-      score: number
-    }[]
-  >("/api/sectors")
+  return useApi<SectorRanking[]>("/api/v1/sectors")
 }
 
-export function useWatchlist() {
-  return useApi<
-    {
-      rank: number
-      stockId: number
-      symbol: string
-      name: string
-      compositeScore: number
-      patternType: string | null
-      regime: string
-      stopLossLevel: number
-      sectorName: string
-      sectorRank: number
-      momentumScore: number
-      fundamentalScore: number
-      sectorScore: number
-      technicalScore: number
-      accumulationScore: number
-      breakoutScore: number
-    }[]
-  >("/api/watchlist")
+export function useWatchlist(date?: string) {
+  const path = date
+    ? `/api/v1/watchlist?date=${date}`
+    : "/api/v1/watchlist"
+  return useApi<WatchlistEntry[]>(path)
 }
 
-export function useAllScores() {
-  return useApi<
-    {
-      rank: number
-      symbol: string
-      name: string
-      compositeScore: number
-      patternType: string | null
-      regime: string
-      stopLossLevel: number
-      sectorName: string
-      sectorRank: number
-      momentumScore: number
-      fundamentalScore: number
-      sectorScore: number
-      technicalScore: number
-      accumulationScore: number
-      breakoutScore: number
-    }[]
-  >("/api/scores")
+export function useScores(symbol: string) {
+  return useApi<{
+    momentum_score: number
+    fundamental_score: number
+    sector_score: number
+    technical_score: number
+    accumulation_score: number
+    breakout_score: number
+    composite_score: number
+  }>(`/api/v1/scores/${symbol}`)
+}
+
+export function useStocks() {
+  return useApi<Stock[]>("/api/v1/stocks?active=true")
 }
 
 export function useStockDetail(symbol: string) {
-  return useApi<{
-    stock: {
-      id: number
-      symbol: string
-      name: string
-      sector: string
-      marketCap: number
-      isActive: boolean
-    }
-    latestPrice: {
-      date: string
-      open: number
-      high: number
-      low: number
-      close: number
-      volume: number
-    } | null
-    indicators: {
-      ma50: number
-      ma150: number
-      ma200: number
-      rsScore: number
-      atr: number
-      high52w: number
-      low52w: number
-    } | null
-    scores: {
-      momentumScore: number
-      fundamentalScore: number
-      sectorScore: number
-      technicalScore: number
-      accumulationScore: number
-      breakoutScore: number
-      compositeScore: number
-    } | null
-    fundamentals: {
-      quarter: string
-      eps: number
-      epsYoyGrowth: number
-      revenue: number
-      revenueYoyGrowth: number
-      roe: number
-      netMargin: number
-      peRatio: number
-      debtToEquity: number
-    } | null
-    patternType: string | null
-    stopLossLevel: number
-  }>(`/api/stock/${symbol}`)
+  return useApi<StockDetail>(`/api/v1/stock/${symbol}/detail`)
+}
+
+export function useRegimeSignals() {
+  return useApi<RegimeSignalsResponse>("/api/v1/regime/signals")
+}
+
+export function useFiiDii(days: number = 30) {
+  return useApi<FiiDiiFlow[]>(`/api/v1/fii-dii?days=${days}`)
 }

@@ -1,15 +1,19 @@
 import { NavLink, Outlet } from "react-router-dom"
-import { useOverview } from "@/lib/api"
-import { formatDate, regimeColor } from "@/lib/utils"
+import { useRegime } from "@/lib/api"
+import { formatDate, regimeColor, regimeAllocation } from "@/lib/utils"
 
 const navItems = [
   { to: "/", label: "Overview" },
   { to: "/watchlist", label: "Watchlist" },
+  { to: "/sectors", label: "Sectors" },
+  { to: "/screener", label: "Universe" },
+  { to: "/regime", label: "Regime" },
 ]
 
 export function Layout() {
-  const { data: overview } = useOverview()
-  const rc = overview ? regimeColor(overview.regime) : null
+  const { data: regime } = useRegime()
+  const rc = regime ? regimeColor(regime.regime) : null
+  const alloc = regime ? regimeAllocation(regime.regime) : null
 
   return (
     <div className="flex min-h-svh flex-col bg-background">
@@ -38,15 +42,27 @@ export function Layout() {
         </nav>
 
         <div className="ml-auto flex items-center gap-4">
-          {overview && rc && (
-            <div
-              className={`flex items-center gap-2 border px-2.5 py-1 text-[11px] font-medium ${rc.bg} ${rc.border} ${rc.text}`}
-            >
-              <span className={`inline-block size-1.5 ${rc.dot}`} />
-              {overview.regime} &middot; {overview.exposure}
-              <span className="text-[10px] opacity-60">
-                {formatDate(overview.date)}
-              </span>
+          {regime && rc && (
+            <div className="flex items-center gap-2">
+              {regime.crash_warning && (
+                <span className="inline-flex items-center gap-1 border border-red-500/30 bg-red-500/10 px-2 py-1 text-[10px] font-semibold text-red-600 dark:text-red-400 animate-pulse">
+                  CRASH WARNING
+                </span>
+              )}
+              <div
+                className={`flex items-center gap-2 border px-2.5 py-1 text-[11px] font-medium ${rc.bg} ${rc.border} ${rc.text}`}
+              >
+                <span className={`inline-block size-1.5 ${rc.dot}`} />
+                {regime.regime}
+                {alloc && (
+                  <span className="text-[10px] opacity-60">
+                    {alloc.max_equity_pct}% / {alloc.max_positions}pos
+                  </span>
+                )}
+                <span className="text-[10px] opacity-60">
+                  {formatDate(regime.date)}
+                </span>
+              </div>
             </div>
           )}
           <kbd className="border px-1.5 py-0.5 text-[10px] text-muted-foreground">

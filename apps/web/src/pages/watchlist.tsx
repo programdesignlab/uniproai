@@ -20,34 +20,25 @@ import {
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/tabs"
-import { Separator } from "@workspace/ui/components/separator"
-import { useOverview, useWatchlist, useAllScores } from "@/lib/api"
+import { useRegime, useWatchlist } from "@/lib/api"
 import {
   formatDate,
   patternColor,
   scoreBgClass,
   scoreTextClass,
+  compositeScorePct,
+  tierLabel,
+  tierColor,
 } from "@/lib/utils"
 import { StackedScoreBar, ScoreCell } from "@/components/score-bar"
+import type { WatchlistEntry, Tier } from "@/lib/types"
 
-interface StockRow {
-  rank: number
-  symbol: string
-  name: string
-  compositeScore: number
-  patternType: string | null
-  stopLossLevel: number
-  sectorName: string
-  sectorRank: number
-  momentumScore: number
-  fundamentalScore: number
-  sectorScore: number
-  technicalScore: number
-  accumulationScore: number
-  breakoutScore: number
+/** Backend sends momentum_score as null in watchlist; use scaled_score instead */
+function getMomentum(entry: WatchlistEntry): number {
+  return entry.momentum_score ?? entry.scaled_score ?? 0
 }
 
-function StockTable({ rows }: { rows: StockRow[] }) {
+function StockTable({ rows }: { rows: WatchlistEntry[] }) {
   return (
     <Table>
       <TableHeader>
@@ -62,6 +53,7 @@ function StockTable({ rows }: { rows: StockRow[] }) {
           <TableHead className="text-center">Accum</TableHead>
           <TableHead className="text-center">Brk</TableHead>
           <TableHead>Pattern</TableHead>
+          <TableHead className="text-right">Entry Zone</TableHead>
           <TableHead className="text-right">Stop Loss</TableHead>
           <TableHead>Sector</TableHead>
           <TableHead>Breakdown</TableHead>
@@ -69,19 +61,36 @@ function StockTable({ rows }: { rows: StockRow[] }) {
       </TableHeader>
       <TableBody>
         {rows.map((entry, i) => {
-          const pct = (entry.compositeScore / 125) * 100
+          const pct = compositeScorePct(entry.composite_score)
           return (
             <TableRow key={entry.symbol}>
               <TableCell className="tabular-nums text-muted-foreground">
                 {entry.rank || i + 1}
               </TableCell>
               <TableCell>
-                <Link
-                  to={`/stock/${entry.symbol}`}
-                  className="font-medium hover:underline"
-                >
-                  {entry.symbol}
-                </Link>
+                <div className="flex items-center gap-1.5">
+                  <Link
+                    to={`/stock/${entry.symbol}`}
+                    className="font-medium hover:underline"
+                  >
+                    {entry.symbol}
+                  </Link>
+                  {entry.tier && (
+                    <span className={`inline-flex items-center border px-1 py-0.5 text-[8px] font-medium ${tierColor(entry.tier)}`}>
+                      T{entry.tier}
+                    </span>
+                  )}
+                  {entry.earnings_flag && (
+                    <span className="text-[10px] text-amber-600 dark:text-amber-400" title={`Earnings: ${entry.earnings_date || "soon"}`}>
+                      E
+                    </span>
+                  )}
+                  {entry.inst_flow_positive && (
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400" title={`Inst: ${entry.inst_flow_signal}`}>
+                      I
+                    </span>
+                  )}
+                </div>
                 <div className="text-[10px] text-muted-foreground leading-tight max-w-32 truncate">
                   {entry.name}
                 </div>
@@ -90,54 +99,59 @@ function StockTable({ rows }: { rows: StockRow[] }) {
                 <span
                   className={`inline-flex items-center px-1.5 py-0.5 text-xs tabular-nums font-semibold ${scoreBgClass(pct)} ${scoreTextClass(pct)}`}
                 >
-                  {entry.compositeScore.toFixed(1)}
+                  {entry.composite_score.toFixed(1)}
                 </span>
               </TableCell>
               <TableCell className="text-center">
-                <ScoreCell value={entry.momentumScore} max={40} />
+                <ScoreCell value={getMomentum(entry)} max={200} />
               </TableCell>
               <TableCell className="text-center">
-                <ScoreCell value={entry.fundamentalScore} max={25} />
+                <ScoreCell value={entry.fundamental_score} max={20} />
               </TableCell>
               <TableCell className="text-center">
-                <ScoreCell value={entry.sectorScore} max={20} />
+                <ScoreCell value={entry.sector_score} max={10} />
               </TableCell>
               <TableCell className="text-center">
-                <ScoreCell value={entry.technicalScore} max={15} />
+                <ScoreCell value={entry.technical_score} max={15} />
               </TableCell>
               <TableCell className="text-center">
-                <ScoreCell value={entry.accumulationScore} max={15} />
+                <ScoreCell value={entry.accumulation_score} max={11} />
               </TableCell>
               <TableCell className="text-center">
-                <ScoreCell value={entry.breakoutScore} max={10} />
+                <ScoreCell value={entry.breakout_score} max={10} />
               </TableCell>
               <TableCell>
-                {entry.patternType ? (
+                {entry.pattern_type ? (
                   <span
-                    className={`inline-flex items-center border px-1.5 py-0.5 text-[10px] font-medium ${patternColor(entry.patternType)}`}
+                    className={`inline-flex items-center border px-1.5 py-0.5 text-[10px] font-medium ${patternColor(entry.pattern_type)}`}
                   >
-                    {entry.patternType}
+                    {entry.pattern_type}
                   </span>
                 ) : (
                   <span className="text-muted-foreground/40">&mdash;</span>
                 )}
               </TableCell>
+              <TableCell className="text-right tabular-nums text-[11px] text-muted-foreground">
+                {entry.entry_zone_low && entry.entry_zone_high
+                  ? `${entry.entry_zone_low.toFixed(0)}–${entry.entry_zone_high.toFixed(0)}`
+                  : "\u2014"}
+              </TableCell>
               <TableCell className="text-right tabular-nums text-muted-foreground">
-                {entry.stopLossLevel
-                  ? entry.stopLossLevel.toFixed(2)
+                {entry.stop_loss_level
+                  ? entry.stop_loss_level.toFixed(2)
                   : "\u2014"}
               </TableCell>
               <TableCell className="max-w-28 truncate text-muted-foreground">
-                {entry.sectorName || "\u2014"}
+                {entry.sector_name || "\u2014"}
               </TableCell>
               <TableCell className="min-w-44">
                 <StackedScoreBar
-                  momentum={entry.momentumScore}
-                  fundamental={entry.fundamentalScore}
-                  sector={entry.sectorScore}
-                  technical={entry.technicalScore}
-                  accumulation={entry.accumulationScore}
-                  breakout={entry.breakoutScore}
+                  momentum={getMomentum(entry)}
+                  fundamental={entry.fundamental_score}
+                  sector={entry.sector_score}
+                  technical={entry.technical_score}
+                  accumulation={entry.accumulation_score}
+                  breakout={entry.breakout_score}
                 />
               </TableCell>
             </TableRow>
@@ -149,11 +163,10 @@ function StockTable({ rows }: { rows: StockRow[] }) {
 }
 
 export function WatchlistPage() {
-  const { data: overview, loading: overviewLoading } = useOverview()
+  const { data: regime, loading: regimeLoading } = useRegime()
   const { data: watchlistData, loading: wlLoading } = useWatchlist()
-  const { data: allScores, loading: scoresLoading } = useAllScores()
 
-  const loading = overviewLoading || wlLoading || scoresLoading
+  const loading = regimeLoading || wlLoading
 
   if (loading) {
     return (
@@ -164,7 +177,12 @@ export function WatchlistPage() {
   }
 
   const wl = watchlistData || []
-  const scored = allScores || []
+  const hasTiers = wl.some((s) => s.tier != null)
+
+  // Group by tier if enriched data available
+  const tier1 = wl.filter((s) => s.tier === 1)
+  const tier2 = wl.filter((s) => s.tier === 2)
+  const tier3 = wl.filter((s) => s.tier === 3)
 
   return (
     <div className="flex flex-col gap-6">
@@ -172,8 +190,8 @@ export function WatchlistPage() {
         <div>
           <h1 className="text-lg font-semibold">Watchlist</h1>
           <p className="text-xs text-muted-foreground">
-            {overview?.date
-              ? `Scan results for ${formatDate(overview.date)}`
+            {regime?.date
+              ? `Scan results for ${formatDate(regime.date)}`
               : "Latest scan results"}
           </p>
         </div>
@@ -181,15 +199,15 @@ export function WatchlistPage() {
         <div className="flex items-center gap-3 text-[9px] text-muted-foreground">
           <span className="flex items-center gap-1">
             <span className="inline-block size-2 bg-sky-500 dark:bg-sky-400" />
-            Mom/40
+            Mom/200
           </span>
           <span className="flex items-center gap-1">
             <span className="inline-block size-2 bg-emerald-500 dark:bg-emerald-400" />
-            Fund/25
+            Fund/20
           </span>
           <span className="flex items-center gap-1">
             <span className="inline-block size-2 bg-violet-500 dark:bg-violet-400" />
-            Sect/20
+            Sect/10
           </span>
           <span className="flex items-center gap-1">
             <span className="inline-block size-2 bg-amber-500 dark:bg-amber-400" />
@@ -197,7 +215,7 @@ export function WatchlistPage() {
           </span>
           <span className="flex items-center gap-1">
             <span className="inline-block size-2 bg-orange-500 dark:bg-orange-400" />
-            Accum/15
+            Accum/11
           </span>
           <span className="flex items-center gap-1">
             <span className="inline-block size-2 bg-pink-500 dark:bg-pink-400" />
@@ -206,76 +224,82 @@ export function WatchlistPage() {
         </div>
       </div>
 
-      <Tabs defaultValue={wl.length > 0 ? "watchlist" : "all"}>
-        <TabsList>
-          <TabsTrigger value="watchlist">
-            Watchlist ({wl.length})
-          </TabsTrigger>
-          <TabsTrigger value="all">
-            All Scored ({scored.length})
-          </TabsTrigger>
-        </TabsList>
+      {hasTiers ? (
+        <Tabs defaultValue="all">
+          <TabsList>
+            <TabsTrigger value="all">All ({wl.length})</TabsTrigger>
+            <TabsTrigger value="tier1">
+              Tier 1 — Buy Now ({tier1.length})
+            </TabsTrigger>
+            <TabsTrigger value="tier2">
+              Tier 2 — Near Pivot ({tier2.length})
+            </TabsTrigger>
+            <TabsTrigger value="tier3">
+              Tier 3 — On Radar ({tier3.length})
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="watchlist">
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                {wl.length} stocks in {overview?.regime || "regime"}-filtered
-                watchlist
-              </CardTitle>
-              <CardDescription>
-                {overview?.regime === "Bear"
-                  ? "Bear market: only top 5 by composite score"
-                  : overview?.regime === "Neutral"
-                    ? "Neutral market: top 50% of scored stocks"
-                    : "Bull market: full ranked list"}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {wl.length === 0 ? (
-                <div className="flex flex-col items-center gap-2 py-12">
-                  <div className="text-sm text-muted-foreground">
-                    No stocks passed regime filter
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    Switch to "All Scored" to see all results
-                  </div>
-                </div>
-              ) : (
+          <TabsContent value="all">
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  {wl.length} stocks in {regime?.regime || "regime"}-filtered watchlist
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                 <StockTable rows={wl} />
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-        <TabsContent value="all">
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                All {scored.length} stocks with composite scores
-              </CardTitle>
-              <CardDescription>
-                Unfiltered ranking — includes stocks that didn't make the
-                watchlist
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {scored.length === 0 ? (
-                <div className="flex flex-col items-center gap-2 py-12">
-                  <div className="text-sm text-muted-foreground">
-                    No scores available
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    Run the scan pipeline first
-                  </div>
+          {([
+            { key: "tier1", rows: tier1, tier: 1 as Tier },
+            { key: "tier2", rows: tier2, tier: 2 as Tier },
+            { key: "tier3", rows: tier3, tier: 3 as Tier },
+          ]).map((t) => (
+            <TabsContent key={t.key} value={t.key}>
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    {tierLabel(t.tier)} — {t.rows.length} stocks
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {t.rows.length === 0 ? (
+                    <div className="py-12 text-center text-sm text-muted-foreground">
+                      No stocks in this tier
+                    </div>
+                  ) : (
+                    <StockTable rows={t.rows} />
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          ))}
+        </Tabs>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              {wl.length} stocks in {regime?.regime || "regime"}-filtered watchlist
+            </CardTitle>
+            <CardDescription>
+              Ranked by composite score
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {wl.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 py-12">
+                <div className="text-sm text-muted-foreground">
+                  No stocks in watchlist
                 </div>
-              ) : (
-                <StockTable rows={scored} />
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+              </div>
+            ) : (
+              <StockTable rows={wl} />
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

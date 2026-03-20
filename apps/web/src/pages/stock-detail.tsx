@@ -20,8 +20,8 @@ import {
   formatVolume,
   changeClass,
   patternColor,
-  scoreBgClass,
   scoreTextClass,
+  compositeScorePct,
 } from "@/lib/utils"
 import { ScoreGauge } from "@/components/score-bar"
 
@@ -99,40 +99,43 @@ export function StockDetailPage() {
     )
   }
 
-  const { stock, latestPrice, indicators, scores, fundamentals } = detail
+  const { stock, latest_price, indicators, scores } = detail
+  const fundamentals = Array.isArray(detail.fundamentals)
+    ? detail.fundamentals[0] ?? null
+    : detail.fundamentals
   const priceChange =
-    latestPrice && latestPrice.open > 0
-      ? ((latestPrice.close - latestPrice.open) / latestPrice.open) * 100
+    latest_price && latest_price.open > 0
+      ? ((latest_price.close - latest_price.open) / latest_price.open) * 100
       : 0
   const distFrom52wHigh =
-    indicators && indicators.high52w > 0 && latestPrice
-      ? ((indicators.high52w - latestPrice.close) / indicators.high52w) * 100
+    indicators && indicators.high_52w > 0 && latest_price
+      ? ((indicators.high_52w - latest_price.close) / indicators.high_52w) * 100
       : 0
   const pricePctOf52wH =
-    indicators && indicators.high52w > 0 && latestPrice
-      ? (latestPrice.close / indicators.high52w) * 100
+    indicators && indicators.high_52w > 0 && latest_price
+      ? (latest_price.close / indicators.high_52w) * 100
       : 0
 
-  const compositePct = scores ? (scores.compositeScore / 125) * 100 : 0
+  const compositePct = scores ? compositeScorePct(scores.composite_score) : 0
 
   // Trend template conditions
   const trendConditions =
-    latestPrice && indicators
+    latest_price && indicators
       ? [
           {
             label: "Price > 50 DMA",
-            passed: latestPrice.close > indicators.ma50,
-            detail: `${formatCurrency(latestPrice.close)} vs ${formatCurrency(indicators.ma50)}`,
+            passed: latest_price.close > indicators.ma50,
+            detail: `${formatCurrency(latest_price.close)} vs ${formatCurrency(indicators.ma50)}`,
           },
           {
             label: "Price > 150 DMA",
-            passed: latestPrice.close > indicators.ma150,
-            detail: `${formatCurrency(latestPrice.close)} vs ${formatCurrency(indicators.ma150)}`,
+            passed: latest_price.close > indicators.ma150,
+            detail: `${formatCurrency(latest_price.close)} vs ${formatCurrency(indicators.ma150)}`,
           },
           {
             label: "Price > 200 DMA",
-            passed: latestPrice.close > indicators.ma200,
-            detail: `${formatCurrency(latestPrice.close)} vs ${formatCurrency(indicators.ma200)}`,
+            passed: latest_price.close > indicators.ma200,
+            detail: `${formatCurrency(latest_price.close)} vs ${formatCurrency(indicators.ma200)}`,
           },
           {
             label: "50 DMA > 150 DMA",
@@ -171,11 +174,11 @@ export function StockDetailPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {detail.patternType && (
+          {detail.pattern_type && (
             <span
-              className={`inline-flex items-center border px-2 py-1 text-[11px] font-medium ${patternColor(detail.patternType)}`}
+              className={`inline-flex items-center border px-2 py-1 text-[11px] font-medium ${patternColor(detail.pattern_type)}`}
             >
-              {detail.patternType}
+              {detail.pattern_type}
             </span>
           )}
           <Badge variant="secondary">{stock.sector || "Unknown"}</Badge>
@@ -189,10 +192,10 @@ export function StockDetailPage() {
           <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
             Close
           </span>
-          {latestPrice ? (
+          {latest_price ? (
             <>
               <span className="text-2xl font-bold tabular-nums">
-                {formatCurrency(latestPrice.close)}
+                {formatCurrency(latest_price.close)}
               </span>
               <span
                 className={`text-xs tabular-nums font-medium ${changeClass(priceChange)}`}
@@ -206,7 +209,7 @@ export function StockDetailPage() {
           )}
         </div>
 
-        {/* Composite score */}
+        {/* Composite score with ring chart */}
         <div className="flex flex-col gap-0.5 bg-background p-4">
           <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
             Composite
@@ -217,9 +220,9 @@ export function StockDetailPage() {
                 <span
                   className={`text-2xl font-bold tabular-nums ${scoreTextClass(compositePct)}`}
                 >
-                  {scores.compositeScore.toFixed(1)}
+                  {scores.composite_score.toFixed(1)}
                 </span>
-                <span className="text-xs text-muted-foreground">/125</span>
+                <span className="text-xs text-muted-foreground">/250</span>
               </div>
               <div className="mt-0.5 h-1.5 w-full bg-muted/50">
                 <div
@@ -238,18 +241,17 @@ export function StockDetailPage() {
           <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
             52W Range
           </span>
-          {indicators && latestPrice ? (
+          {indicators && latest_price ? (
             <>
               <div className="flex items-baseline gap-1">
                 <span className="text-xs tabular-nums text-muted-foreground">
-                  {formatCurrency(indicators.low52w)}
+                  {formatCurrency(indicators.low_52w)}
                 </span>
                 <span className="text-muted-foreground">&mdash;</span>
                 <span className="text-xs tabular-nums font-medium">
-                  {formatCurrency(indicators.high52w)}
+                  {formatCurrency(indicators.high_52w)}
                 </span>
               </div>
-              {/* Price position within 52W range */}
               <div className="relative mt-1 h-1.5 w-full bg-muted/50">
                 <div
                   className="absolute top-0 h-full bg-foreground/20"
@@ -261,7 +263,7 @@ export function StockDetailPage() {
                 <div
                   className="absolute top-[-2px] h-[calc(100%+4px)] w-px bg-foreground"
                   style={{
-                    left: `${Math.min(100, ((latestPrice.close - indicators.low52w) / (indicators.high52w - indicators.low52w)) * 100)}%`,
+                    left: `${Math.min(100, ((latest_price.close - indicators.low_52w) / (indicators.high_52w - indicators.low_52w)) * 100)}%`,
                   }}
                 />
               </div>
@@ -279,13 +281,13 @@ export function StockDetailPage() {
           <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
             Volume
           </span>
-          {latestPrice ? (
+          {latest_price ? (
             <>
               <span className="text-lg font-bold tabular-nums">
-                {formatVolume(latestPrice.volume)}
+                {formatVolume(latest_price.volume)}
               </span>
               <span className="text-[10px] text-muted-foreground">
-                {latestPrice.date?.toString().split("T")[0]}
+                {latest_price.date?.toString().split("T")[0]}
               </span>
             </>
           ) : (
@@ -298,15 +300,15 @@ export function StockDetailPage() {
           <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
             Stop Loss
           </span>
-          {detail.stopLossLevel > 0 && latestPrice ? (
+          {detail.stop_loss_level > 0 && latest_price ? (
             <>
               <span className="text-lg font-bold tabular-nums">
-                {formatCurrency(detail.stopLossLevel)}
+                {formatCurrency(detail.stop_loss_level)}
               </span>
               <span className="text-[10px] text-red-600 dark:text-red-400 tabular-nums">
                 {(
-                  ((latestPrice.close - detail.stopLossLevel) /
-                    latestPrice.close) *
+                  ((latest_price.close - detail.stop_loss_level) /
+                    latest_price.close) *
                   100
                 ).toFixed(1)}
                 % risk
@@ -336,65 +338,65 @@ export function StockDetailPage() {
                 <CardHeader>
                   <CardTitle>Module Breakdown</CardTitle>
                   <CardDescription>
-                    6 scoring modules, max 125 points
+                    6 scoring modules — composite uncapped
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-5">
                   <ScoreGauge
                     label="Momentum"
                     sublabel="Multi-timeframe returns + relative strength"
-                    value={scores.momentumScore}
-                    max={40}
+                    value={scores.momentum_score}
+                    max={200}
                     color="bg-sky-500 dark:bg-sky-400"
                   />
                   <ScoreGauge
                     label="Fundamental"
                     sublabel="CANSLIM: EPS, revenue, ROE growth filters"
-                    value={scores.fundamentalScore}
-                    max={25}
+                    value={scores.fundamental_score}
+                    max={20}
+                    min={-5}
                     color="bg-emerald-500 dark:bg-emerald-400"
                   />
                   <ScoreGauge
                     label="Sector"
                     sublabel="Sector momentum rotation ranking"
-                    value={scores.sectorScore}
-                    max={20}
+                    value={scores.sector_score}
+                    max={10}
+                    min={-5}
                     color="bg-violet-500 dark:bg-violet-400"
                   />
                   <ScoreGauge
                     label="Technical"
                     sublabel="Minervini 6-condition trend template"
-                    value={scores.technicalScore}
+                    value={scores.technical_score}
                     max={15}
                     color="bg-amber-500 dark:bg-amber-400"
                   />
                   <ScoreGauge
                     label="Accumulation"
-                    sublabel="Delivery trends + volume patterns"
-                    value={scores.accumulationScore}
-                    max={15}
+                    sublabel="Delivery trends, OBV, ADL, inst flow"
+                    value={scores.accumulation_score}
+                    max={11}
                     color="bg-orange-500 dark:bg-orange-400"
                   />
                   <ScoreGauge
                     label="Breakout"
                     sublabel="VCP, base, resistance, volume breakout"
-                    value={scores.breakoutScore}
+                    value={scores.breakout_score}
                     max={10}
                     color="bg-pink-500 dark:bg-pink-400"
                   />
                 </CardContent>
               </Card>
 
-              {/* Score summary */}
+              {/* Score summary with ring chart */}
               <Card>
                 <CardHeader>
                   <CardTitle>Composite Score</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-col items-center gap-4 py-4">
-                    {/* Large score display */}
                     <div className="relative flex size-40 items-center justify-center">
-                      {/* Background ring */}
                       <svg
                         className="absolute inset-0 -rotate-90"
                         viewBox="0 0 160 160"
@@ -420,7 +422,7 @@ export function StockDetailPage() {
                                 : "stroke-orange-500"
                           }
                           strokeWidth="8"
-                          strokeDasharray={`${(compositePct / 100) * 440} 440`}
+                          strokeDasharray={`${(Math.min(compositePct, 100) / 100) * 440} 440`}
                           strokeLinecap="butt"
                         />
                       </svg>
@@ -428,10 +430,10 @@ export function StockDetailPage() {
                         <span
                           className={`text-3xl font-bold tabular-nums ${scoreTextClass(compositePct)}`}
                         >
-                          {scores.compositeScore.toFixed(1)}
+                          {scores.composite_score.toFixed(1)}
                         </span>
                         <span className="text-xs text-muted-foreground">
-                          of 125
+                          of 250
                         </span>
                       </div>
                     </div>
@@ -441,12 +443,12 @@ export function StockDetailPage() {
                     {/* Score module chips */}
                     <div className="grid w-full grid-cols-3 gap-2">
                       {[
-                        { label: "Mom", value: scores.momentumScore, max: 40, color: "bg-sky-500" },
-                        { label: "Fund", value: scores.fundamentalScore, max: 25, color: "bg-emerald-500" },
-                        { label: "Sect", value: scores.sectorScore, max: 20, color: "bg-violet-500" },
-                        { label: "Tech", value: scores.technicalScore, max: 15, color: "bg-amber-500" },
-                        { label: "Accum", value: scores.accumulationScore, max: 15, color: "bg-orange-500" },
-                        { label: "Brk", value: scores.breakoutScore, max: 10, color: "bg-pink-500" },
+                        { label: "Mom", value: scores.momentum_score, max: 200, color: "bg-sky-500" },
+                        { label: "Fund", value: scores.fundamental_score, max: 20, color: "bg-emerald-500" },
+                        { label: "Sect", value: scores.sector_score, max: 10, color: "bg-violet-500" },
+                        { label: "Tech", value: scores.technical_score, max: 15, color: "bg-amber-500" },
+                        { label: "Accum", value: scores.accumulation_score, max: 11, color: "bg-orange-500" },
+                        { label: "Brk", value: scores.breakout_score, max: 10, color: "bg-pink-500" },
                       ].map((m) => (
                         <div
                           key={m.label}
@@ -532,17 +534,22 @@ export function StockDetailPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {indicators && latestPrice ? (
+                {indicators && latest_price ? (
                   <div className="flex flex-col gap-3">
                     {[
-                      { label: "Price", value: latestPrice.close, isPrice: true },
+                      { label: "Price", value: latest_price.close, isPrice: true },
                       { label: "50 DMA", value: indicators.ma50 },
                       { label: "150 DMA", value: indicators.ma150 },
                       { label: "200 DMA", value: indicators.ma200 },
                     ]
                       .sort((a, b) => b.value - a.value)
-                      .map((item, i, arr) => {
-                        const maxVal = arr[0].value
+                      .map((item) => {
+                        const maxVal = Math.max(
+                          latest_price.close,
+                          indicators.ma50,
+                          indicators.ma150,
+                          indicators.ma200
+                        )
                         const barWidth = (item.value / maxVal) * 100
                         return (
                           <div
@@ -598,17 +605,17 @@ export function StockDetailPage() {
                 <CardTitle>Price Action</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-col">
-                {latestPrice ? (
+                {latest_price ? (
                   <>
-                    <StatRow label="Open" value={formatCurrency(latestPrice.open)} />
-                    <StatRow label="High" value={formatCurrency(latestPrice.high)} />
-                    <StatRow label="Low" value={formatCurrency(latestPrice.low)} />
-                    <StatRow label="Close" value={formatCurrency(latestPrice.close)} />
-                    <StatRow label="Volume" value={formatVolume(latestPrice.volume)} />
-                    {latestPrice.high > 0 && (
+                    <StatRow label="Open" value={formatCurrency(latest_price.open)} />
+                    <StatRow label="High" value={formatCurrency(latest_price.high)} />
+                    <StatRow label="Low" value={formatCurrency(latest_price.low)} />
+                    <StatRow label="Close" value={formatCurrency(latest_price.close)} />
+                    <StatRow label="Volume" value={formatVolume(latest_price.volume)} />
+                    {latest_price.high > 0 && (
                       <StatRow
                         label="Day Range"
-                        value={`${(((latestPrice.high - latestPrice.low) / latestPrice.low) * 100).toFixed(2)}%`}
+                        value={`${(((latest_price.high - latest_price.low) / latest_price.low) * 100).toFixed(2)}%`}
                       />
                     )}
                   </>
@@ -629,8 +636,8 @@ export function StockDetailPage() {
                   <>
                     <StatRow
                       label="Relative Strength vs Nifty"
-                      value={`${indicators.rsScore > 0 ? "+" : ""}${indicators.rsScore.toFixed(1)}%`}
-                      className={changeClass(indicators.rsScore)}
+                      value={`${indicators.rs_score > 0 ? "+" : ""}${indicators.rs_score.toFixed(1)}%`}
+                      className={changeClass(indicators.rs_score)}
                     />
                     <StatRow
                       label="ATR (14d)"
@@ -638,11 +645,11 @@ export function StockDetailPage() {
                     />
                     <StatRow
                       label="52W High"
-                      value={formatCurrency(indicators.high52w)}
+                      value={formatCurrency(indicators.high_52w)}
                     />
                     <StatRow
                       label="52W Low"
-                      value={formatCurrency(indicators.low52w)}
+                      value={formatCurrency(indicators.low_52w)}
                     />
                     <StatRow
                       label="From 52W High"
@@ -655,10 +662,10 @@ export function StockDetailPage() {
                             : "text-red-600 dark:text-red-400"
                       }
                     />
-                    {stock.marketCap > 0 && (
+                    {stock.market_cap > 0 && (
                       <StatRow
                         label="Market Cap"
-                        value={`${(stock.marketCap / 100).toFixed(0)} Cr`}
+                        value={`${(stock.market_cap / 100).toFixed(0)} Cr`}
                       />
                     )}
                   </>
@@ -689,30 +696,34 @@ export function StockDetailPage() {
                   <>
                     <StatRow
                       label="EPS"
-                      value={fundamentals.eps.toFixed(2)}
+                      value={fundamentals.eps?.toFixed(2) ?? "\u2014"}
                     />
-                    <StatRow
-                      label="EPS YoY Growth"
-                      value={`${fundamentals.epsYoyGrowth >= 0 ? "+" : ""}${fundamentals.epsYoyGrowth.toFixed(1)}%`}
-                      className={
-                        fundamentals.epsYoyGrowth >= 25
-                          ? "text-emerald-600 dark:text-emerald-400"
-                          : "text-red-600 dark:text-red-400"
-                      }
-                    />
+                    {fundamentals.eps_yoy_growth != null && (
+                      <StatRow
+                        label="EPS YoY Growth"
+                        value={`${fundamentals.eps_yoy_growth >= 0 ? "+" : ""}${fundamentals.eps_yoy_growth.toFixed(1)}%`}
+                        className={
+                          fundamentals.eps_yoy_growth >= 25
+                            ? "text-emerald-600 dark:text-emerald-400"
+                            : "text-red-600 dark:text-red-400"
+                        }
+                      />
+                    )}
                     <StatRow
                       label="Revenue"
-                      value={`${fundamentals.revenue.toLocaleString("en-IN")} Cr`}
+                      value={fundamentals.revenue ? `${fundamentals.revenue.toLocaleString("en-IN")} Cr` : "\u2014"}
                     />
-                    <StatRow
-                      label="Revenue YoY Growth"
-                      value={`${fundamentals.revenueYoyGrowth >= 0 ? "+" : ""}${fundamentals.revenueYoyGrowth.toFixed(1)}%`}
-                      className={
-                        fundamentals.revenueYoyGrowth >= 20
-                          ? "text-emerald-600 dark:text-emerald-400"
-                          : "text-red-600 dark:text-red-400"
-                      }
-                    />
+                    {fundamentals.revenue_yoy_growth != null && (
+                      <StatRow
+                        label="Revenue YoY Growth"
+                        value={`${fundamentals.revenue_yoy_growth >= 0 ? "+" : ""}${fundamentals.revenue_yoy_growth.toFixed(1)}%`}
+                        className={
+                          fundamentals.revenue_yoy_growth >= 20
+                            ? "text-emerald-600 dark:text-emerald-400"
+                            : "text-red-600 dark:text-red-400"
+                        }
+                      />
+                    )}
                   </>
                 ) : (
                   <div className="py-4 text-xs text-muted-foreground">
@@ -732,38 +743,46 @@ export function StockDetailPage() {
               <CardContent className="flex flex-col">
                 {fundamentals ? (
                   <>
-                    <StatRow
-                      label="ROE"
-                      value={`${fundamentals.roe.toFixed(1)}%`}
-                      className={
-                        fundamentals.roe >= 15
-                          ? "text-emerald-600 dark:text-emerald-400"
-                          : "text-red-600 dark:text-red-400"
-                      }
-                    />
-                    <StatRow
-                      label="Net Margin"
-                      value={`${fundamentals.netMargin.toFixed(1)}%`}
-                    />
-                    <StatRow
-                      label="P/E Ratio"
-                      value={fundamentals.peRatio.toFixed(1)}
-                    />
-                    <StatRow
-                      label="Debt/Equity"
-                      value={fundamentals.debtToEquity.toFixed(2)}
-                      className={
-                        fundamentals.debtToEquity < 0.5
-                          ? "text-emerald-600 dark:text-emerald-400"
-                          : fundamentals.debtToEquity < 1
-                            ? "text-amber-600 dark:text-amber-400"
+                    {fundamentals.roe != null && (
+                      <StatRow
+                        label="ROE"
+                        value={`${fundamentals.roe.toFixed(1)}%`}
+                        className={
+                          fundamentals.roe >= 15
+                            ? "text-emerald-600 dark:text-emerald-400"
                             : "text-red-600 dark:text-red-400"
-                      }
-                    />
-                    {stock.marketCap > 0 && (
+                        }
+                      />
+                    )}
+                    {fundamentals.net_margin != null && (
+                      <StatRow
+                        label="Net Margin"
+                        value={`${fundamentals.net_margin.toFixed(1)}%`}
+                      />
+                    )}
+                    {fundamentals.pe_ratio != null && (
+                      <StatRow
+                        label="P/E Ratio"
+                        value={fundamentals.pe_ratio.toFixed(1)}
+                      />
+                    )}
+                    {fundamentals.debt_to_equity != null && (
+                      <StatRow
+                        label="Debt/Equity"
+                        value={fundamentals.debt_to_equity.toFixed(2)}
+                        className={
+                          fundamentals.debt_to_equity < 0.5
+                            ? "text-emerald-600 dark:text-emerald-400"
+                            : fundamentals.debt_to_equity < 1
+                              ? "text-amber-600 dark:text-amber-400"
+                              : "text-red-600 dark:text-red-400"
+                        }
+                      />
+                    )}
+                    {stock.market_cap > 0 && (
                       <StatRow
                         label="Market Cap"
-                        value={`${(stock.marketCap).toLocaleString("en-IN", { maximumFractionDigits: 0 })} Cr`}
+                        value={`${stock.market_cap.toLocaleString("en-IN", { maximumFractionDigits: 0 })} Cr`}
                       />
                     )}
                   </>

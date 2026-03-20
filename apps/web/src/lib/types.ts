@@ -1,95 +1,141 @@
-export type Regime = "Bull" | "Neutral" | "Bear"
+export type Regime = "Strong Bull" | "Bull" | "Weak" | "Bear" | "Full Bear"
 
 export type PatternType = "VCP" | "Base" | "Breakout" | null
+
+export type Tier = 1 | 2 | 3
 
 export interface Stock {
   id: number
   symbol: string
   name: string
   sector: string
-  marketCap: number // crores
-  isActive: boolean
+  industry?: string
+  market_cap: number
+  is_active: boolean
+  is_asm?: boolean
+  is_esm?: boolean
+  promoter_holding_pct?: number | null
+  fii_holding_pct?: number | null
+  dii_holding_pct?: number | null
 }
 
 export interface WatchlistEntry {
   rank: number
-  stockId: number
   symbol: string
   name: string
-  compositeScore: number
-  patternType: PatternType
+  composite_score: number
+  pattern_type: PatternType
   regime: Regime
-  stopLossLevel: number
-  sectorName: string
-  sectorRank: number
-  // score breakdown
-  momentumScore: number
-  fundamentalScore: number
-  sectorScore: number
-  technicalScore: number
-  accumulationScore: number
-  breakoutScore: number
+  stop_loss_level: number
+  sector_name: string
+  sector_rank: number
+  // score breakdown — backend sends momentum_score as null, uses scaled_score
+  momentum_score: number | null
+  scaled_score?: number | null
+  fundamental_score: number
+  sector_score: number
+  technical_score: number
+  accumulation_score: number
+  breakout_score: number
+  // enriched fields
+  tier?: Tier | null
+  entry_zone_low?: number | null
+  entry_zone_high?: number | null
+  earnings_date?: string | null
+  earnings_flag?: boolean | null
+  vol_scalar?: number | null
+  suggested_size_pct?: number | null
+  inst_flow_signal?: string | null
+  inst_flow_positive?: boolean | null
+  obv_bonus?: number | null
+  adl_ratio?: number | null
+  delivery_trend?: string | null
 }
 
 export interface SectorRanking {
-  rank: number
-  sectorName: string
-  avgRsScore: number
-  stocksNearHigh: number
-  totalStocks: number
-  score: number
+  id?: number
+  sector_name: string
+  avg_momentum: number | null
+  stock_count: number
+  parent_sector?: string | null
+  rank?: number
 }
 
-export interface MarketOverview {
+export interface RegimeResponse {
   regime: Regime
-  exposure: string
   date: string
-  niftyClose: number
-  niftyChange: number
-  stocksScanned: number
-  trendTemplatePasses: number
-  watchlistCount: number
+  crash_warning?: boolean
+}
+
+export interface AllocationConfig {
+  max_equity_pct: number
+  max_positions: number
+  risk_per_trade_pct: number
 }
 
 export interface StockDetail {
   stock: Stock
-  latestPrice: {
+  latest_price: {
     date: string
     open: number
     high: number
     low: number
     close: number
     volume: number
-  }
+  } | null
   indicators: {
     ma50: number
     ma150: number
     ma200: number
-    rsScore: number
+    rs_score: number
     atr: number
-    high52w: number
-    low52w: number
-  }
+    high_52w: number
+    low_52w: number
+  } | null
   scores: {
-    momentumScore: number
-    fundamentalScore: number
-    sectorScore: number
-    technicalScore: number
-    accumulationScore: number
-    breakoutScore: number
-    compositeScore: number
-  }
+    momentum_score: number
+    fundamental_score: number
+    sector_score: number
+    technical_score: number
+    accumulation_score: number
+    breakout_score: number
+    composite_score: number
+  } | null
   fundamentals: {
     quarter: string
     eps: number
-    epsYoyGrowth: number
+    eps_yoy_growth: number | null
     revenue: number
-    revenueYoyGrowth: number
-    roe: number
-    netMargin: number
-    peRatio: number
-    debtToEquity: number
-  }
-  patternType: PatternType
-  stopLossLevel: number
+    revenue_yoy_growth: number | null
+    roe: number | null
+    net_margin: number | null
+    pe_ratio: number | null
+    debt_to_equity: number | null
+  }[] | null
+  pattern_type: PatternType
+  stop_loss_level: number
+}
+
+export interface RegimeSignalItem {
+  value: number
+  label: string
+  [key: string]: unknown // additional fields like nifty_close, ma200, breadth_pct, etc.
+}
+
+export interface RegimeSignalsResponse {
+  date: string
+  regime: string
+  score: number
+  crash_warning: boolean
+  signals: Record<string, RegimeSignalItem>
+}
+
+export interface FiiDiiFlow {
+  date: string
+  fii_buy_cr?: number
+  fii_sell_cr?: number
+  fii_net_cr: number
+  dii_buy_cr?: number
+  dii_sell_cr?: number
+  dii_net_cr: number
 }
