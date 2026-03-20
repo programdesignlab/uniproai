@@ -8,6 +8,7 @@ import {
 import { Separator } from "@workspace/ui/components/separator"
 import { useRegime, useRegimeSignals, useFiiDii } from "@/lib/api"
 import { regimeColor, regimeAllocation, formatDate, formatCompact } from "@/lib/utils"
+import { usePageTitle } from "@/lib/use-page-title"
 import type { Regime } from "@/lib/types"
 
 const ALL_REGIMES: Regime[] = ["Strong Bull", "Bull", "Weak", "Bear", "Full Bear"]
@@ -21,6 +22,7 @@ const REGIME_DESCRIPTIONS: Record<string, string> = {
 }
 
 export function MarketRegimePage() {
+  usePageTitle("Market Regime")
   const { data: regime, loading: regimeLoading } = useRegime()
   const { data: signals, loading: signalsLoading, error: signalsError } = useRegimeSignals()
   const { data: fiiDii, loading: fiiLoading, error: fiiError } = useFiiDii(30)

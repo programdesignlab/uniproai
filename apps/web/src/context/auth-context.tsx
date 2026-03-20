@@ -11,25 +11,27 @@ type AuthContextType = {
   user: User | null
   loading: boolean
   signOut: () => Promise<void>
+  refreshSession: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   signOut: async () => {},
+  refreshSession: async () => {},
 })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
+  const refreshSession = async () => {
+    const result = await authClient.getSession()
+    setUser(result.data?.user ? (result.data.user as User) : null)
+  }
+
   useEffect(() => {
-    authClient.getSession().then((result) => {
-      if (result.data?.user) {
-        setUser(result.data.user as User)
-      }
-      setLoading(false)
-    })
+    refreshSession().then(() => setLoading(false))
   }, [])
 
   const signOut = async () => {
@@ -38,7 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signOut, refreshSession }}>
       {children}
     </AuthContext.Provider>
   )

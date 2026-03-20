@@ -31,6 +31,7 @@ import {
   tierColor,
 } from "@/lib/utils"
 import { StackedScoreBar, ScoreCell } from "@/components/score-bar"
+import { usePageTitle } from "@/lib/use-page-title"
 import type { WatchlistEntry, Tier } from "@/lib/types"
 
 /** Backend sends momentum_score as null in watchlist; use scaled_score instead */
@@ -163,6 +164,7 @@ function StockTable({ rows }: { rows: WatchlistEntry[] }) {
 }
 
 export function WatchlistPage() {
+  usePageTitle("Watchlist")
   const { data: regime, loading: regimeLoading } = useRegime()
   const { data: watchlistData, loading: wlLoading } = useWatchlist()
 

@@ -15,6 +15,7 @@ import {
   TabsTrigger,
 } from "@workspace/ui/components/tabs"
 import { useStockDetail } from "@/lib/api"
+import { usePageTitle } from "@/lib/use-page-title"
 import {
   formatCurrency,
   formatVolume,
@@ -74,6 +75,7 @@ function TrendCheck({
 
 export function StockDetailPage() {
   const { symbol } = useParams<{ symbol: string }>()
+  usePageTitle(symbol ?? "Stock")
   const { data: detail, loading, error } = useStockDetail(symbol || "")
 
   if (loading) {

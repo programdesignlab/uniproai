@@ -7,7 +7,7 @@ type Mode = "signin" | "signup"
 
 export function SignInPage() {
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, refreshSession } = useAuth()
   const [mode, setMode] = useState<Mode>("signin")
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
@@ -41,6 +41,7 @@ export function SignInPage() {
       }
     }
 
+    await refreshSession()
     navigate("/", { replace: true })
   }
 
@@ -48,7 +49,7 @@ export function SignInPage() {
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="w-full max-w-sm border border-border p-8 space-y-6">
         <div>
-          <h1 className="text-lg font-semibold tracking-tight">MomentumEdge</h1>
+          <h1 className="text-lg font-semibold tracking-tight">uniproadvisory AI</h1>
           <p className="text-sm text-muted-foreground mt-1">
             {mode === "signin" ? "Sign in to continue" : "Create your account"}
           </p>

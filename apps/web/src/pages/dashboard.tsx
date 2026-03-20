@@ -17,6 +17,7 @@ import {
   compositeScorePct,
 } from "@/lib/utils"
 import { StackedScoreBar } from "@/components/score-bar"
+import { usePageTitle } from "@/lib/use-page-title"
 import type { WatchlistEntry } from "@/lib/types"
 
 function getMomentum(entry: WatchlistEntry): number {
@@ -32,6 +33,7 @@ const REGIME_DESC: Record<string, string> = {
 }
 
 export function DashboardPage() {
+  usePageTitle("Overview")
   const { data: regime, loading: regimeLoading } = useRegime()
   const { data: sectors, loading: sectorsLoading } = useSectors()
   const { data: watchlistData, loading: watchlistLoading } = useWatchlist()

@@ -17,8 +17,10 @@ import {
 } from "@workspace/ui/components/table"
 import { useSectors, useWatchlist } from "@/lib/api"
 import { compositeScorePct, scoreBgClass, scoreTextClass } from "@/lib/utils"
+import { usePageTitle } from "@/lib/use-page-title"
 
 export function SectorsPage() {
+  usePageTitle("Sectors")
   const { data: sectors, loading: sectorsLoading } = useSectors()
   const { data: watchlist } = useWatchlist()
   const [selectedSector, setSelectedSector] = useState<string | null>(null)

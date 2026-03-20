@@ -1,5 +1,6 @@
-import { NavLink, Outlet } from "react-router-dom"
+import { NavLink, Outlet, useNavigate } from "react-router-dom"
 import { useRegime } from "@/lib/api"
+import { useAuth } from "@/context/auth-context"
 import { formatDate, regimeColor, regimeAllocation } from "@/lib/utils"
 
 const navItems = [
@@ -12,14 +13,21 @@ const navItems = [
 
 export function Layout() {
   const { data: regime } = useRegime()
+  const { signOut } = useAuth()
+  const navigate = useNavigate()
   const rc = regime ? regimeColor(regime.regime) : null
   const alloc = regime ? regimeAllocation(regime.regime) : null
+
+  const handleSignOut = async () => {
+    await signOut()
+    navigate("/sign-in", { replace: true })
+  }
 
   return (
     <div className="flex min-h-svh flex-col bg-background">
       <header className="sticky top-0 z-50 flex h-11 shrink-0 items-center border-b bg-background/95 backdrop-blur-sm px-6">
         <span className="text-sm font-semibold tracking-tight">
-          MomentumEdge
+          uniproadvisory AI
         </span>
 
         <nav className="ml-8 flex items-center gap-0.5">
@@ -68,6 +76,12 @@ export function Layout() {
           <kbd className="border px-1.5 py-0.5 text-[10px] text-muted-foreground">
             d
           </kbd>
+          <button
+            onClick={handleSignOut}
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Sign out
+          </button>
         </div>
       </header>
       <main className="mx-auto w-full max-w-7xl flex-1 p-6">

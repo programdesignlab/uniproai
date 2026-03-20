@@ -21,10 +21,12 @@ import {
 } from "@workspace/ui/components/select"
 import { useStocks, useSectors } from "@/lib/api"
 import { formatCompact } from "@/lib/utils"
+import { usePageTitle } from "@/lib/use-page-title"
 type SortKey = "symbol" | "name" | "sector" | "market_cap"
 type SortDir = "asc" | "desc"
 
 export function ScreenerPage() {
+  usePageTitle("Universe")
   const { data: stocks, loading: stocksLoading } = useStocks()
   const { data: sectors } = useSectors()
 
