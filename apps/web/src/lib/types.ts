@@ -17,6 +17,12 @@ export interface Stock {
   promoter_holding_pct?: number | null
   fii_holding_pct?: number | null
   dii_holding_pct?: number | null
+  // v16
+  pledge_pct?: number | null
+  beta?: number | null
+  is_psu?: boolean
+  sebi_fine_last_24m?: boolean
+  sebi_investigation_active?: boolean
 }
 
 export interface WatchlistEntry {
@@ -114,6 +120,18 @@ export interface StockDetail {
   }[] | null
   pattern_type: PatternType
   stop_loss_level: number
+  // v16
+  monster: {
+    score: number
+    meets_threshold: boolean
+    components: Record<string, number>
+  } | null
+  exclusion: {
+    block_name: string
+    reason: string
+    data_missing: boolean
+  } | null
+  strategy_hash: string | null
 }
 
 export interface RegimeSignalItem {
@@ -185,4 +203,10 @@ export interface TurnaroundCandidate {
 export interface TurnaroundResponse {
   count: number
   candidates: TurnaroundCandidate[]
+}
+
+export interface ExclusionSummary {
+  date: string | null
+  total_excluded: number
+  by_block: Record<string, number>
 }

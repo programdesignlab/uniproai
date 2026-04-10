@@ -181,6 +181,8 @@ export function ScreenerPage() {
                 <TableHead className="text-right">Promoter</TableHead>
                 <TableHead className="text-right">FII</TableHead>
                 <TableHead className="text-right">DII</TableHead>
+                <TableHead className="text-right">Pledge</TableHead>
+                <TableHead className="text-right">Beta</TableHead>
                 <TableHead className="text-center">Flags</TableHead>
               </TableRow>
             </TableHeader>
@@ -224,8 +226,23 @@ export function ScreenerPage() {
                       ? `${stock.dii_holding_pct.toFixed(1)}%`
                       : "\u2014"}
                   </TableCell>
+                  <TableCell className="text-right tabular-nums text-muted-foreground">
+                    {stock.pledge_pct != null && stock.pledge_pct > 0
+                      ? <span className={stock.pledge_pct > 20 ? "text-red-600 dark:text-red-400" : ""}>{(stock.pledge_pct * 100).toFixed(1)}%</span>
+                      : "\u2014"}
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums text-muted-foreground">
+                    {stock.beta != null
+                      ? <span className={stock.beta > 2.5 ? "text-red-600 dark:text-red-400" : ""}>{stock.beta.toFixed(2)}</span>
+                      : "\u2014"}
+                  </TableCell>
                   <TableCell className="text-center">
                     <div className="flex items-center justify-center gap-1">
+                      {stock.is_psu && (
+                        <span className="inline-flex items-center border border-sky-500/20 bg-sky-500/10 px-1 py-0.5 text-[8px] font-medium text-sky-700 dark:text-sky-300">
+                          PSU
+                        </span>
+                      )}
                       {stock.is_asm && (
                         <span className="inline-flex items-center border border-amber-500/20 bg-amber-500/10 px-1 py-0.5 text-[8px] font-medium text-amber-700 dark:text-amber-300">
                           ASM
@@ -234,6 +251,11 @@ export function ScreenerPage() {
                       {stock.is_esm && (
                         <span className="inline-flex items-center border border-red-500/20 bg-red-500/10 px-1 py-0.5 text-[8px] font-medium text-red-700 dark:text-red-300">
                           ESM
+                        </span>
+                      )}
+                      {stock.sebi_fine_last_24m && (
+                        <span className="inline-flex items-center border border-rose-500/20 bg-rose-500/10 px-1 py-0.5 text-[8px] font-medium text-rose-700 dark:text-rose-300">
+                          SEBI
                         </span>
                       )}
                     </div>

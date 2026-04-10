@@ -10,6 +10,7 @@ import type {
   FiiDiiFlow,
   StrategyInfo,
   ExclusionsResponse,
+  ExclusionSummary,
   TurnaroundResponse,
 } from "./types"
 
@@ -100,4 +101,8 @@ export function useExclusions(date?: string) {
 
 export function useTurnaroundWatch() {
   return useApi<TurnaroundResponse>("/api/v1/turnaround-watch")
+}
+
+export function useExclusionSummary() {
+  return useApi<ExclusionSummary>("/api/v1/exclusions/summary")
 }

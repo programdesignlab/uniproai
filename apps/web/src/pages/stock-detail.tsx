@@ -101,7 +101,7 @@ export function StockDetailPage() {
     )
   }
 
-  const { stock, latest_price, indicators, scores } = detail
+  const { stock, latest_price, indicators, scores, monster, exclusion } = detail
   const fundamentals = Array.isArray(detail.fundamentals)
     ? detail.fundamentals[0] ?? null
     : detail.fundamentals
@@ -186,6 +186,39 @@ export function StockDetailPage() {
           <Badge variant="secondary">{stock.sector || "Unknown"}</Badge>
         </div>
       </div>
+
+      {/* Monster + Exclusion badges */}
+      {(monster || exclusion) && (
+        <div className="flex items-center gap-2">
+          {monster && monster.score > 0 && (
+            <div
+              className={`inline-flex items-center gap-1.5 border px-2.5 py-1 text-[11px] font-medium ${
+                monster.meets_threshold
+                  ? "border-violet-500/30 bg-violet-500/10 text-violet-700 dark:text-violet-300"
+                  : "border-border bg-muted/50 text-muted-foreground"
+              }`}
+              title={Object.entries(monster.components)
+                .filter(([, v]) => v > 0)
+                .map(([k, v]) => `${k}: +${v}`)
+                .join(", ")}
+            >
+              <span className={`inline-block size-1.5 ${monster.meets_threshold ? "bg-violet-500" : "bg-muted-foreground"}`} />
+              Monster Score: {monster.score}/100
+              {monster.meets_threshold && (
+                <span className="text-[10px] opacity-70">THRESHOLD MET</span>
+              )}
+            </div>
+          )}
+          {exclusion && (
+            <div className="inline-flex items-center gap-1.5 border border-red-500/20 bg-red-500/10 px-2.5 py-1 text-[11px] font-medium text-red-700 dark:text-red-300">
+              Excluded: {exclusion.block_name} &mdash; {exclusion.reason}
+              {exclusion.data_missing && (
+                <span className="text-[10px] bg-amber-500/15 text-amber-700 dark:text-amber-300 px-1">missing data</span>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Hero stats row */}
       <div className="grid grid-cols-5 gap-px bg-border">

@@ -7,7 +7,7 @@ import {
   CardDescription,
 } from "@workspace/ui/components/card"
 import { Separator } from "@workspace/ui/components/separator"
-import { useRegime, useSectors, useWatchlist, useStrategyInfo } from "@/lib/api"
+import { useRegime, useSectors, useWatchlist, useStrategyInfo, useExclusionSummary } from "@/lib/api"
 import {
   regimeColor,
   regimeAllocation,
@@ -39,6 +39,7 @@ export function DashboardPage() {
   const { data: sectors, loading: sectorsLoading } = useSectors()
   const { data: watchlistData, loading: watchlistLoading } = useWatchlist()
   const { data: strategy } = useStrategyInfo()
+  const { data: exclSummary } = useExclusionSummary()
 
   if (regimeLoading) {
     return (
@@ -104,7 +105,7 @@ export function DashboardPage() {
       </div>
 
       {/* Allocation + Pipeline stats */}
-      <div className="grid grid-cols-4 gap-px bg-border">
+      <div className="grid grid-cols-5 gap-px bg-border">
         <div className="flex flex-col gap-1 bg-background p-4">
           <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
             Regime
@@ -149,6 +150,17 @@ export function DashboardPage() {
             per position
           </span>
         </div>
+        <Link to="/exclusions" className="flex flex-col gap-1 bg-background p-4 hover:bg-muted/30 transition-colors">
+          <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+            Filtered Out
+          </span>
+          <span className="text-2xl font-bold tabular-nums">
+            {exclSummary?.total_excluded ?? "\u2014"}
+          </span>
+          <span className="text-[10px] text-muted-foreground">
+            by {Object.keys(exclSummary?.by_block || {}).length || 0} hard blocks
+          </span>
+        </Link>
       </div>
 
       <div className="grid grid-cols-5 gap-4">
