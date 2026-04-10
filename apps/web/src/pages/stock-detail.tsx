@@ -327,7 +327,7 @@ export function StockDetailPage() {
         <TabsList>
           <TabsTrigger value="scores">Scores</TabsTrigger>
           <TabsTrigger value="trend">
-            Trend Template ({trendPassCount}/6)
+            Trend Template ({trendPassCount}/{trendConditions.length})
           </TabsTrigger>
           <TabsTrigger value="technicals">Technicals</TabsTrigger>
           <TabsTrigger value="fundamentals">Fundamentals</TabsTrigger>
@@ -353,10 +353,10 @@ export function StockDetailPage() {
                   />
                   <ScoreGauge
                     label="Fundamental"
-                    sublabel="CANSLIM: EPS, revenue, ROE growth filters"
+                    sublabel="EPS acceleration, revenue, promoter, D/E, OCF"
                     value={scores.fundamental_score}
-                    max={20}
-                    min={-5}
+                    max={30}
+                    min={-20}
                     color="bg-emerald-500 dark:bg-emerald-400"
                   />
                   <ScoreGauge
@@ -446,7 +446,7 @@ export function StockDetailPage() {
                     <div className="grid w-full grid-cols-3 gap-2">
                       {[
                         { label: "Mom", value: scores.momentum_score, max: 200, color: "bg-sky-500" },
-                        { label: "Fund", value: scores.fundamental_score, max: 20, color: "bg-emerald-500" },
+                        { label: "Fund", value: scores.fundamental_score, max: 30, color: "bg-emerald-500" },
                         { label: "Sect", value: scores.sector_score, max: 10, color: "bg-violet-500" },
                         { label: "Tech", value: scores.technical_score, max: 15, color: "bg-amber-500" },
                         { label: "Accum", value: scores.accumulation_score, max: 11, color: "bg-orange-500" },
@@ -514,9 +514,9 @@ export function StockDetailPage() {
                             : "text-red-600 dark:text-red-400"
                         }`}
                       >
-                        {trendPassCount === 6
+                        {trendPassCount === trendConditions.length
                           ? "PASSES"
-                          : `FAILS (${trendPassCount}/6)`}
+                          : `FAILS (${trendPassCount}/${trendConditions.length})`}
                       </span>
                     </div>
                   </>
@@ -690,7 +690,7 @@ export function StockDetailPage() {
                   {fundamentals ? ` (${fundamentals.quarter})` : ""}
                 </CardTitle>
                 <CardDescription>
-                  CANSLIM requires EPS &ge; 25% and Revenue &ge; 20% YoY
+                  EPS acceleration, revenue growth, and earnings quality
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col">
@@ -739,7 +739,7 @@ export function StockDetailPage() {
               <CardHeader>
                 <CardTitle>Valuation &amp; Health</CardTitle>
                 <CardDescription>
-                  CANSLIM requires ROE &ge; 15%
+                  Debt quality, margins, and valuation
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col">

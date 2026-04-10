@@ -107,7 +107,7 @@ function StockTable({ rows }: { rows: WatchlistEntry[] }) {
                 <ScoreCell value={getMomentum(entry)} max={200} />
               </TableCell>
               <TableCell className="text-center">
-                <ScoreCell value={entry.fundamental_score} max={20} />
+                <ScoreCell value={entry.fundamental_score} max={30} />
               </TableCell>
               <TableCell className="text-center">
                 <ScoreCell value={entry.sector_score} max={10} />
@@ -205,7 +205,7 @@ export function WatchlistPage() {
           </span>
           <span className="flex items-center gap-1">
             <span className="inline-block size-2 bg-emerald-500 dark:bg-emerald-400" />
-            Fund/20
+            Fund/30
           </span>
           <span className="flex items-center gap-1">
             <span className="inline-block size-2 bg-violet-500 dark:bg-violet-400" />
