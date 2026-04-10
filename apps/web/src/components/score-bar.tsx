@@ -16,15 +16,15 @@ export function StackedScoreBar({
 }) {
   const segments = [
     { value: momentum, max: 200, color: "bg-sky-500 dark:bg-sky-400", label: "Mom" },
-    { value: fundamental, max: 20, color: "bg-emerald-500 dark:bg-emerald-400", label: "Fund" },
+    { value: fundamental, max: 30, color: "bg-emerald-500 dark:bg-emerald-400", label: "Fund" },
     { value: sector, max: 10, color: "bg-violet-500 dark:bg-violet-400", label: "Sect" },
     { value: technical, max: 15, color: "bg-amber-500 dark:bg-amber-400", label: "Tech" },
     { value: accumulation, max: 11, color: "bg-orange-500 dark:bg-orange-400", label: "Accum" },
     { value: breakout, max: 10, color: "bg-pink-500 dark:bg-pink-400", label: "Brk" },
   ]
-  // Theoretical max = 200+20+10+15+11+10 = 266, but use 246 as practical denominator
+  // Theoretical max = 200+30+10+15+11+10 = 276, use 256 as practical denominator
   const composite = segments.reduce((sum, s) => sum + Math.max(0, s.value), 0)
-  const denominator = Math.max(composite, 246)
+  const denominator = Math.max(composite, 256)
 
   return (
     <div className="flex flex-col gap-1">

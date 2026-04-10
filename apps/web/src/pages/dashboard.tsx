@@ -7,7 +7,7 @@ import {
   CardDescription,
 } from "@workspace/ui/components/card"
 import { Separator } from "@workspace/ui/components/separator"
-import { useRegime, useSectors, useWatchlist } from "@/lib/api"
+import { useRegime, useSectors, useWatchlist, useStrategyInfo } from "@/lib/api"
 import {
   regimeColor,
   regimeAllocation,
@@ -15,6 +15,7 @@ import {
   scoreBgClass,
   scoreTextClass,
   compositeScorePct,
+  formatStrategyHash,
 } from "@/lib/utils"
 import { StackedScoreBar } from "@/components/score-bar"
 import { usePageTitle } from "@/lib/use-page-title"
@@ -37,6 +38,7 @@ export function DashboardPage() {
   const { data: regime, loading: regimeLoading } = useRegime()
   const { data: sectors, loading: sectorsLoading } = useSectors()
   const { data: watchlistData, loading: watchlistLoading } = useWatchlist()
+  const { data: strategy } = useStrategyInfo()
 
   if (regimeLoading) {
     return (
@@ -82,6 +84,13 @@ export function DashboardPage() {
             <p className="max-w-xl text-xs text-muted-foreground leading-relaxed">
               {REGIME_DESC[regime.regime] || "Market regime not classified."}
             </p>
+          </div>
+          <div className="flex flex-col items-end gap-1">
+            {strategy && (
+              <span className="text-[10px] tabular-nums text-muted-foreground font-mono">
+                {strategy.name} v{strategy.version} [{formatStrategyHash(strategy.strategy_hash)}]
+              </span>
+            )}
           </div>
           <div className="flex flex-col items-end gap-0.5">
             <span className={`text-2xl font-bold tabular-nums ${rc.text}`}>

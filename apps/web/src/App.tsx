@@ -8,6 +8,9 @@ import { StockDetailPage } from "@/pages/stock-detail"
 import { SectorsPage } from "@/pages/sectors"
 import { ScreenerPage } from "@/pages/screener"
 import { MarketRegimePage } from "@/pages/market-regime"
+import { ExclusionsPage } from "@/pages/exclusions"
+import { TurnaroundPage } from "@/pages/turnaround"
+import { StrategyPage } from "@/pages/strategy"
 import { SignInPage } from "@/pages/sign-in"
 
 export function App() {
@@ -29,6 +32,9 @@ export function App() {
             <Route path="sectors" element={<SectorsPage />} />
             <Route path="screener" element={<ScreenerPage />} />
             <Route path="regime" element={<MarketRegimePage />} />
+            <Route path="exclusions" element={<ExclusionsPage />} />
+            <Route path="turnaround" element={<TurnaroundPage />} />
+            <Route path="strategy" element={<StrategyPage />} />
           </Route>
         </Routes>
       </AuthProvider>

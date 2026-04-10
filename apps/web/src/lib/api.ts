@@ -8,6 +8,9 @@ import type {
   StockDetail,
   RegimeSignalsResponse,
   FiiDiiFlow,
+  StrategyInfo,
+  ExclusionsResponse,
+  TurnaroundResponse,
 } from "./types"
 
 function useApi<T>(path: string) {
@@ -80,4 +83,21 @@ export function useRegimeSignals() {
 
 export function useFiiDii(days: number = 30) {
   return useApi<FiiDiiFlow[]>(`/api/v1/fii-dii?days=${days}`)
+}
+
+// ─── v16 hooks ──────────────────────────────────────────────────
+
+export function useStrategyInfo() {
+  return useApi<StrategyInfo>("/api/v1/strategy/info")
+}
+
+export function useExclusions(date?: string) {
+  const path = date
+    ? `/api/v1/exclusions?date=${date}&limit=200`
+    : "/api/v1/exclusions?limit=200"
+  return useApi<ExclusionsResponse>(path)
+}
+
+export function useTurnaroundWatch() {
+  return useApi<TurnaroundResponse>("/api/v1/turnaround-watch")
 }

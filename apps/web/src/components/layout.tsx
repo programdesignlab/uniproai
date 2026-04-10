@@ -9,6 +9,8 @@ const navItems = [
   { to: "/sectors", label: "Sectors" },
   { to: "/screener", label: "Universe" },
   { to: "/regime", label: "Regime" },
+  { to: "/exclusions", label: "Exclusions" },
+  { to: "/turnaround", label: "Turnaround" },
 ]
 
 export function Layout() {

@@ -139,3 +139,50 @@ export interface FiiDiiFlow {
   dii_sell_cr?: number
   dii_net_cr: number
 }
+
+// ─── v16 additions ──────────────────────────────────────────────
+
+export interface StrategyInfo {
+  name: string
+  version: string
+  description: string
+  strategy_hash: string
+  exit_framework: string
+  hard_blocks: number
+  scoring_modules: number
+  exit_phases: number
+  cascade_layers: number
+  monster_enabled: boolean
+  fast_crash_enabled: boolean
+}
+
+export interface ExclusionEntry {
+  date: string
+  symbol: string
+  block_name: string
+  reason: string
+  data_missing: boolean
+  strategy_hash: string
+}
+
+export interface ExclusionsResponse {
+  count: number
+  exclusions: ExclusionEntry[]
+}
+
+export interface TurnaroundCandidate {
+  stock_id: number
+  symbol: string
+  sector: string
+  detected_date: string
+  eps_trend: (number | null)[]
+  revenue_growth_yoy: number | null
+  suppressed: boolean
+  suppression_reason: string | null
+  status: string
+}
+
+export interface TurnaroundResponse {
+  count: number
+  candidates: TurnaroundCandidate[]
+}

@@ -6,8 +6,8 @@ import {
   CardDescription,
 } from "@workspace/ui/components/card"
 import { Separator } from "@workspace/ui/components/separator"
-import { useRegime, useRegimeSignals, useFiiDii } from "@/lib/api"
-import { regimeColor, regimeAllocation, formatDate, formatCompact } from "@/lib/utils"
+import { useRegime, useRegimeSignals, useFiiDii, useStrategyInfo } from "@/lib/api"
+import { regimeColor, regimeAllocation, formatDate, formatCompact, formatStrategyHash } from "@/lib/utils"
 import { usePageTitle } from "@/lib/use-page-title"
 import type { Regime } from "@/lib/types"
 
@@ -26,6 +26,7 @@ export function MarketRegimePage() {
   const { data: regime, loading: regimeLoading } = useRegime()
   const { data: signals, loading: signalsLoading, error: signalsError } = useRegimeSignals()
   const { data: fiiDii, loading: fiiLoading, error: fiiError } = useFiiDii(30)
+  const { data: strategy } = useStrategyInfo()
 
   if (regimeLoading) {
     return (
@@ -139,6 +140,87 @@ export function MarketRegimePage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Strategy & Fast Crash */}
+      {strategy && (
+        <div className="grid grid-cols-3 gap-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Strategy</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col gap-2">
+                <div className="flex justify-between">
+                  <span className="text-[10px] text-muted-foreground">Version</span>
+                  <span className="text-xs font-medium">{strategy.version}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[10px] text-muted-foreground">Hash</span>
+                  <span className="text-xs font-mono tabular-nums">{formatStrategyHash(strategy.strategy_hash)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[10px] text-muted-foreground">Exit Framework</span>
+                  <span className="text-xs font-medium">{strategy.exit_framework}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[10px] text-muted-foreground">Hard Blocks</span>
+                  <span className="text-xs tabular-nums">{strategy.hard_blocks}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[10px] text-muted-foreground">Scoring Modules</span>
+                  <span className="text-xs tabular-nums">{strategy.scoring_modules}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Fast Crash Detector</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col gap-2">
+                <div className="flex justify-between">
+                  <span className="text-[10px] text-muted-foreground">Status</span>
+                  <span className={`text-xs font-semibold ${strategy.fast_crash_enabled ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}>
+                    {strategy.fast_crash_enabled ? "Armed" : "Disabled"}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[10px] text-muted-foreground">Trigger</span>
+                  <span className="text-xs">Nifty -8% in 5 days</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[10px] text-muted-foreground">Response</span>
+                  <span className="text-xs">Sell 50% all positions</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Exit Engine</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col gap-2">
+                <div className="flex justify-between">
+                  <span className="text-[10px] text-muted-foreground">Phases</span>
+                  <span className="text-xs tabular-nums">{strategy.exit_phases}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[10px] text-muted-foreground">Cascade Layers</span>
+                  <span className="text-xs tabular-nums">{strategy.cascade_layers}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[10px] text-muted-foreground">Monster Detection</span>
+                  <span className={`text-xs font-semibold ${strategy.monster_enabled ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}>
+                    {strategy.monster_enabled ? "Active" : "Off"}
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-4">
         {/* Breadth signals */}
